@@ -80,11 +80,11 @@ def main():
 
 
     pathsAndLabels = []
-    pathsAndLabels.append(np.asarray(["./images/the_others/output/", 0]))
-    pathsAndLabels.append(np.asarray(["./images/akimoto/output/", 1]))
-    pathsAndLabels.append(np.asarray(["./images/shiraishi/output/", 2]))
-    pathsAndLabels.append(np.asarray(["./images/nishino/output/", 3]))
-    pathsAndLabels.append(np.asarray(["./images/ikuta/output/", 4]))
+    pathsAndLabels.append(np.asarray(["./images/the_others/", 0]))
+    pathsAndLabels.append(np.asarray(["./images/akimoto/", 1]))
+    pathsAndLabels.append(np.asarray(["./images/shiraishi/", 2]))
+    pathsAndLabels.append(np.asarray(["./images/nishino/", 3]))
+    pathsAndLabels.append(np.asarray(["./images/ikuta/", 4]))
     train, test = image2TrainAndTest(pathsAndLabels,channels=args.channel)
     
 
@@ -94,13 +94,14 @@ def main():
         chainer.cuda.get_device(args.gpu).use()  # Make a specified GPU current
         model.to_gpu()  # Copy the model to the GPU
 
-    if args.model != '' and args.optimizer != '':
-        chainer.serializers.load_npz(args.model, model)
-        chainer.serializers.load_npz(args.optimizer, optimizer)
 
     # Setup an optimizer
     optimizer = chainer.optimizers.Adam()
     optimizer.setup(model)
+
+    if args.model != '' and args.optimizer != '':
+        chainer.serializers.load_npz(args.model, model)
+        chainer.serializers.load_npz(args.optimizer, optimizer)
 
     train_iter = chainer.iterators.SerialIterator(train, args.batchsize)
     test_iter = chainer.iterators.SerialIterator(test, args.batchsize,
@@ -111,6 +112,7 @@ def main():
     trainer = training.Trainer(updater, (args.epoch, 'epoch'), out=args.out)
 
     trainer.extend(extensions.Evaluator(test_iter, model, device=args.gpu))
+    trainer.extend(extensions.dump_graph('main/loss'))
     trainer.extend(extensions.LogReport())
     trainer.extend(extensions.PrintReport(
         ['epoch', 'main/loss', 'validation/main/loss',
