@@ -51,8 +51,17 @@ def image2TrainAndTest(pathsAndLabels, size=128, channels=1):
         
     return train, test
 
-def getValueData(imagePath):
+def getValueDataFromPath(imagePath):
     img = Image.open(imagePath)
+    img.show()
+    r,g,b = img.split()
+    rImgData = np.asarray(np.float32(r)/255.0)
+    gImgData = np.asarray(np.float32(g)/255.0)
+    bImgData = np.asarray(np.float32(b)/255.0)
+    imgData = np.asarray([[[rImgData, gImgData, bImgData]]])
+    return imgData
+
+def getValueDataFromImg(img):
     img.show()
     r,g,b = img.split()
     rImgData = np.asarray(np.float32(r)/255.0)

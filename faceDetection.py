@@ -5,12 +5,11 @@ import numpy as np
 import argparse
 import glob
 
-def faceDetectionWithPath(path, size):
+def faceDetectionFromPath(path, size):
     cvImg = cv2.imread(path)
     cascade_path = "./lib/haarcascade_frontalface_alt.xml"
     cascade = cv2.CascadeClassifier(cascade_path)
     facerect = cascade.detectMultiScale(cvImg, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
-    color = (255, 255, 255)
     faceData = []
     for rect in facerect:
         faceImg = cvImg[rect[1]:rect[1]+rect[3],rect[0]:rect[0]+rect[2]]
@@ -21,12 +20,11 @@ def faceDetectionWithPath(path, size):
         
     return faceData
 
-def faceDetectionWithPil(img, size):
+def faceDetectionFromPil(img, size):
     cvImg = np.asarray(img)
     cascade_path = "./lib/haarcascade_frontalface_alt.xml"
     cascade = cv2.CascadeClassifier(cascade_path)
     facerect = cascade.detectMultiScale(cvImg, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
-    color = (255, 255, 255)
     faceData = []
     for rect in facerect:
         faceImg = cvImg[rect[1]:rect[1]+rect[3],rect[0]:rect[0]+rect[2]]

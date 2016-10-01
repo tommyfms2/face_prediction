@@ -1,6 +1,8 @@
 
 from image2TrainAndTest import image2TrainAndTest
-from image2TrainAndTest import getValueData
+from image2TrainAndTest import getValueDataFromPath
+from image2TrainAndTest import getValueDataFromImg
+from faceDetection import faceDetectionFromPath
 
 import argparse
 import numpy as np
@@ -60,38 +62,29 @@ def main():
     parse.add_argument('--batchsize', '-b', type=int, default=100)
     parse.add_argument('--gpu', '-g', type=int, default=-1)
     parse.add_argument('--model','-m', default='')
-    parse.add_argument('--optimizer', '-o', default='')
     parse.add_argument('--size', '-s', type=int, default=128)
     parse.add_argument('--channel', '-c', default=3)
     parse.add_argument('--testpath', '-p', default="./images/test/output/inputImage_0.png")
     args = parse.parse_args()
 
-    errflag = -1
     if args.model == '':
         sys.stderr.write("Tom's Error occurred! ")
         sys.stderr.write("You have to designate the path to model")
-        errflag = 1
-    if args.optimizer == '':
-        sys.stderr.write("Tom's Error occurred! ")
-        sys.stderr.write("You have to designate the path to optimizer state")
-        errflag = 1
-    if errflag == 1:
         return
 
     outNumStr = args.model.split(".")[0].split("_")
     outnum = int(outNumStr[ len(outNumStr)-1 ])
 
     model = L.Classifier(Alex(args.channel, outnum))
-    optimizer = chainer.optimizers.Adam()
-    optimizer.setup(model)
     chainer.serializers.load_npz(args.model, model)
-    chainer.serializers.load_npz(args.optimizer, optimizer)
 
     # fetch value data to predict who is he/she
-    # getValueData is not created yet but provisionally done in image2trainandtest.py.
-    valData = getValueData(args.testpath)
-    pred = predict(model, valData)
-    print(pred)
+    faceImgs = faceDetectionFromPath(args.testpath, args.size)
+    for faceImg in faceImgs:
+        valData = getValueDataFromImg(faceImg)
+        pred = predict(model, valData)
+        print(pred)
+
 
 if __name__ == '__main__':
     main()
