@@ -41,14 +41,23 @@ def main():
     model = L.Classifier(alexLike.AlexLike(outnum))
     chainer.serializers.load_npz(args.model, model)
 
+    ident = [""] * outnum
+    for line in open("whoiswho.txt", "r"):
+        dirname = line.split(",")[0]
+        label = line.split(",")[1]
+        ident[int(label)] = dirname
+
     # fetch value data to predict who is he/she
     faceImgs = faceDetectionFromPath(args.testpath, args.size)
     for faceImg in faceImgs:
         valData = getValueDataFromImg(faceImg)
-        print(valData)
         pred = alexLike.predict(model, valData)
         print(pred)
-
+        predR = np.round(pred)
+        for pre_i in np.arange(len(predR)):
+            if predR[pre_i] == 1:
+                print("he/she is {}".format(ident[pre_i]))
+            
 
 if __name__ == '__main__':
     main()

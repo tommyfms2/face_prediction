@@ -1,0 +1,7 @@
+0_the_others,0
+akimoto,1
+hashimoto,2
+ikoma,3
+ikuta,4
+nishino,5
+shiraishi,6

@@ -2,12 +2,14 @@
 
 from image2TrainAndTest import image2TrainAndTest
 import alexLike
+from copy_model import copy_model
 
 import argparse
 import numpy as np
 from PIL import Image
 import glob
 
+import pickle
 import chainer
 import chainer.functions as F
 import chainer.links as L
@@ -16,6 +18,7 @@ from chainer.datasets import tuple_dataset
 from chainer import Chain, Variable, optimizers
 from chainer import training
 from chainer.training import extensions
+import re
 
 def main():
     parse = argparse.ArgumentParser(description='face detection train')
@@ -37,6 +40,7 @@ def main():
                        help='image size')
     parse.add_argument('--path','-p', default='')
     parse.add_argument('--channel','-c', default=3)
+    parse.add_argument('--caffemodelpath','-cmp', default="")
 
     args = parse.parse_args()
 
@@ -50,16 +54,33 @@ def main():
     pathsAndLabels = []
     label_i = 0
     data_list = glob.glob(args.path + "*")
+    datatxt = open("whoiswho.txt","w")
     print(data_list)
     for datafinderName in data_list:
         pathsAndLabels.append(np.asarray([datafinderName+"/", label_i]))
+        pattern = r".*/(.*)"
+        matchOB = re.finditer(pattern, datafinderName)
+        directoryname = ""
+        if matchOB:
+            for a in matchOB:
+                directoryname += a.groups()[0]
+        datatxt.write(directoryname + "," + str(label_i) + "\n")
         label_i = label_i + 1
-
+    datatxt.close()
+        
     train, test = image2TrainAndTest(pathsAndLabels,channels=args.channel)
     
-
-    model = L.Classifier(alexLike.AlexLike( len(pathsAndLabels)))
-
+    if args.caffemodelpath == '':
+        print("no fine tuning")
+        model = L.Classifier(alexLike.AlexLike( len(pathsAndLabels)))
+        #model = L.Classifier(alexLike.GoogLeNet( len(pathsAndLabels) ))
+        #model = alexLike.Alex( len(pathsAndLabels) )
+    else:
+        print("fine tuning using ", args.caffemodelpath)
+        model = L.Classifier(alexLike.FromCaffeAlexnet( len(pathsAndLabels)) )
+        original_model = pickle.load(open(args.caffemodelpath, "rb"))
+        copy_model(original_model, model)
+    
     if args.gpu >= 0:
         chainer.cuda.get_device(args.gpu).use()  # Make a specified GPU current
         model.to_gpu()  # Copy the model to the GPU
